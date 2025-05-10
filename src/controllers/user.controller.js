@@ -5,13 +5,8 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-  res.status(200).json({
-    message: "Ok",
-  });
-
   // Get user details from frontend
   const { fullname, username, email, password } = req.body;
-  console.log("fullname:", fullname, "username:", username, "email:", email);
 
   // Validation - not empty
   if (
@@ -21,7 +16,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Check if user already exits: username, email
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
@@ -31,10 +26,19 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Check for images, Check for avatar
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0].path;
+  // const coverImageLocalPath = req.files?.coverImage[0].path; this is not right way
 
-  console.log("Avatar Local Path:", avatarLocalPath);
-  console.log("coverImage Local Path:", coverImageLocalPath);
+  // console.log("Avatar Local Path:", avatarLocalPath);
+  // console.log("coverImage Local Path:", coverImageLocalPath);
+
+  let coverImageLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar is required.");
@@ -44,8 +48,8 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-  console.log("Avatar:", avatar);
-  console.log("Cover Image:", coverImage);
+  // console.log("Avatar:", avatar);
+  // console.log("Cover Image:", coverImage);
 
   if (!avatar) {
     throw new ApiError(400, "Avatar is required.");
