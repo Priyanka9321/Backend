@@ -310,6 +310,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     { new: true }
   ).select("-password");
 
+  // Delete old avatar only if new one uploaded successfully
+  if (user.avatar) {
+    const publicId = user.avatar.split("/").pop().split(".")[0];
+    await deleteFromCloudinary(publicId);
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, user, "cover image file updated successfully."));
